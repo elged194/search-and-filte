@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* styles/globals.css */
+:root {
+  --background: #ffffff;
+  --foreground: #333;
+  --global: linear-gradient(to right, #594D1C 0%, #BEA036 100%);
+  --white: #fff;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  /* الخط الافتراضي هو Inter */
+}
+
+
+html[lang='ar'] body {
+  font-family: 'Cairo', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth !important;
+}
+
+
+
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+.title {
+  color: var(--global);
+  font-weight: 700;
+}
+
+.line,
+.line-top {
+  position: relative;
+}
+
+.line::before,
+.line-top::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 20px;
+  background-color: var(--global);
+}
+
+.line-top::before {
+  background-color: var(--white);
+
+}
+
+.smoze {
+  animation: bounce-smoze 1s infinite;
+}
+
+@keyframes bounce-smoze {
+
+  0%,
+  100% {
+    transform: translateY(-2%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* --------------------------------------- */
+.btn-hov:not(.slider-btn) {
+  position: relative;
+  background-color: #333;
+  /* لون الخلفية الأساسي */
+  background: linear-gradient(90deg, var(--global) 50%, var(--white) 50%);
+  background-size: 200%;
+  background-position: right;
+  transition: background-position 0.4s ease;
+}
+
+.btn-hov:hover:not(.slider-btn) {
+  background-position: left;
+  /* تحريك الخلفية من اليمين إلى اليسار */
+  color: #fff;
+  /* الحفاظ على وضوح النص عند hover */
+}
+
+
+/* ----------- nav bar ---------------- */
+.menu-nav ul li {
+  margin: 0 8px;
+  transition: all 0.3s;
+  font-weight: bold;
+}
+
+.menu-nav ul li:hover {
+  color: var(--global);
+}
+
+.top-bar {
+  background: var(--global);
+}
+
+.auth-nav a:hover {
+  transition: all 0.3s;
+  color: var(--global);
+}
+
+.language-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.language-select {
+  padding: 5px;
+  font-size: 16px;
+}
+
+.selected-flag img {
+  width: 30px;
+  height: auto;
+  border-radius: 4px;
+}
+
+option {
+  padding-left: 30px;
+  background-position: left center;
+  background-repeat: no-repeat;
+}
+
+:focus-visible {
+  outline: -webkit-focus-ring-color auto 0px;
+}
+
+
+/* ------- */
+
+/* --------------/ rotate center /-------------- */
+@keyframes slow-rotation {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* إضافة كلاس مخصص للحركة */
+.rotate-center {
+  animation: slow-rotation 10s linear infinite;
+  transform-origin: center;
+  /* ضبط نقطة الدوران حول المركز */
+}
