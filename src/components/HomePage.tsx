@@ -123,15 +123,20 @@ export default function HomePage() {
   // تحديث URL عند تغيير الفلاتر
   const updateURL = (newFilters: Filters) => {
     const queryParams = new URLSearchParams();
-
-    // إضافة الفلاتر غير الفارغة للـ URL
+  
+    // إضافة الفلاتر غير الفارغة للـ URL، مع استثناء القيم الفارغة
     Object.entries(newFilters).forEach(([key, value]) => {
-      if (value) {
+      if (value && value.trim() !== "") {
         queryParams.set(key, value);
       }
     });
-
-    router.push(`?${queryParams.toString()}`, { scroll: false });
+  
+    // تحديث URL بدون التأثير على الروت
+    window.history.replaceState(
+      null, 
+      '', 
+      queryParams.toString() ? `?${queryParams.toString()}` : window.location.pathname
+    );
   };
 
   const handleSearch = () => {
