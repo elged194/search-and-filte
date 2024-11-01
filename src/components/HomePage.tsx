@@ -1,7 +1,11 @@
 "use client";
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function HomePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const data = [
     {
       id: 1,
@@ -83,7 +87,7 @@ export default function HomePage() {
   ];
 
   type Filters = {
-    searchTerm: string; // New field for general search
+    searchTerm: string;
     location: string;
     finishType: string;
     currency: string;
@@ -96,25 +100,42 @@ export default function HomePage() {
     amenity: string;
   };
 
-  const [filters, setFilters] = useState<Filters>({
-    searchTerm: "", // Initialize the new search term
-    location: "",
-    finishType: "",
-    currency: "",
-    propertyType: "",
-    purpose: "",
-    minPrice: "",
-    maxPrice: "",
-    minArea: "",
-    maxArea: "",
-    amenity: "",
-  });
+  // تهيئة الفلاتر من URL
+  const initializeFiltersFromURL = (): Filters => {
+    return {
+      searchTerm: searchParams.get("searchTerm") || "",
+      location: searchParams.get("location") || "",
+      finishType: searchParams.get("finishType") || "",
+      currency: searchParams.get("currency") || "",
+      propertyType: searchParams.get("propertyType") || "",
+      purpose: searchParams.get("purpose") || "",
+      minPrice: searchParams.get("minPrice") || "",
+      maxPrice: searchParams.get("maxPrice") || "",
+      minArea: searchParams.get("minArea") || "",
+      maxArea: searchParams.get("maxArea") || "",
+      amenity: searchParams.get("amenity") || "",
+    };
+  };
 
+  const [filters, setFilters] = useState<Filters>(initializeFiltersFromURL);
   const [filteredData, setFilteredData] = useState(data);
+
+  // تحديث URL عند تغيير الفلاتر
+  const updateURL = (newFilters: Filters) => {
+    const queryParams = new URLSearchParams();
+
+    // إضافة الفلاتر غير الفارغة للـ URL
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value) {
+        queryParams.set(key, value);
+      }
+    });
+
+    router.push(`?${queryParams.toString()}`, { scroll: false });
+  };
 
   const handleSearch = () => {
     const filtered = data.filter((property) => {
-      // First check if the property matches the general search term
       const matchesSearch =
         !filters.searchTerm ||
         Object.values(property).some((value) =>
@@ -124,7 +145,6 @@ export default function HomePage() {
             .includes(filters.searchTerm.toLowerCase())
         );
 
-      // Then check all other filters
       return (
         matchesSearch &&
         (!filters.location || property.location === filters.location) &&
@@ -141,24 +161,50 @@ export default function HomePage() {
       );
     });
     setFilteredData(filtered);
+    updateURL(filters);
   };
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFilters((prevFilters) => ({
-      ...prevFilters,
+    const newFilters = {
+      ...filters,
       [name]: value,
-    }));
+    };
+    setFilters(newFilters);
+    updateURL(newFilters);
+
+    // فلترة مباشرة
+    const filtered = data.filter((property) => {
+      return (
+        (!newFilters.location || property.location === newFilters.location) &&
+        (!newFilters.finishType ||
+          property.finishType === newFilters.finishType) &&
+        (!newFilters.currency || property.currency === newFilters.currency) &&
+        (!newFilters.propertyType ||
+          property.propertyType === newFilters.propertyType) &&
+        (!newFilters.purpose || property.purpose === newFilters.purpose) &&
+        (!newFilters.minPrice ||
+          property.price >= parseInt(newFilters.minPrice)) &&
+        (!newFilters.maxPrice ||
+          property.price <= parseInt(newFilters.maxPrice)) &&
+        (!newFilters.minArea ||
+          property.area >= parseInt(newFilters.minArea)) &&
+        (!newFilters.maxArea ||
+          property.area <= parseInt(newFilters.maxArea)) &&
+        (!newFilters.amenity || property.amenities.includes(newFilters.amenity))
+      );
+    });
+    setFilteredData(filtered);
   };
 
-  // New function to handle search input changes
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    setFilters((prev) => ({ ...prev, searchTerm: value }));
+    const newFilters = { ...filters, searchTerm: value };
+    setFilters(newFilters);
+    updateURL(newFilters);
 
-    // Only filter based on search term immediately
     const filtered = data.filter((property) =>
       Object.values(property).some((val) =>
         val.toString().toLowerCase().includes(value.toLowerCase())
@@ -166,6 +212,39 @@ export default function HomePage() {
     );
     setFilteredData(filtered);
   };
+
+  // تحميل الفلاتر من URL عند تحميل الصفحة
+  useEffect(() => {
+    const initialFilters = initializeFiltersFromURL();
+    setFilters(initialFilters);
+
+    // إعادة تطبيق الفلاتر من URL
+    const filtered = data.filter((property) => {
+      return (
+        (!initialFilters.location ||
+          property.location === initialFilters.location) &&
+        (!initialFilters.finishType ||
+          property.finishType === initialFilters.finishType) &&
+        (!initialFilters.currency ||
+          property.currency === initialFilters.currency) &&
+        (!initialFilters.propertyType ||
+          property.propertyType === initialFilters.propertyType) &&
+        (!initialFilters.purpose ||
+          property.purpose === initialFilters.purpose) &&
+        (!initialFilters.minPrice ||
+          property.price >= parseInt(initialFilters.minPrice)) &&
+        (!initialFilters.maxPrice ||
+          property.price <= parseInt(initialFilters.maxPrice)) &&
+        (!initialFilters.minArea ||
+          property.area >= parseInt(initialFilters.minArea)) &&
+        (!initialFilters.maxArea ||
+          property.area <= parseInt(initialFilters.maxArea)) &&
+        (!initialFilters.amenity ||
+          property.amenities.includes(initialFilters.amenity))
+      );
+    });
+    setFilteredData(filtered);
+  }, []);
 
   return (
     <section className="py-5">
