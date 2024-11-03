@@ -1,6 +1,10 @@
-import React from "react";
 import HomePage from "@/components/HomePage";
+import React, { Suspense } from "react";
 
-export default function Home() {
-  return <HomePage />;
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomePage />
+    </Suspense>
+  );
 }

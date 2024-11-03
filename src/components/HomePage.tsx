@@ -1,9 +1,9 @@
 "use client";
 import React, { ChangeEvent, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function HomePage() {
-  const router = useRouter();
+  // const router = useRouter();
   const searchParams = useSearchParams();
 
   const data = [
@@ -123,18 +123,18 @@ export default function HomePage() {
   // تحديث URL عند تغيير الفلاتر
   const updateURL = (newFilters: Filters) => {
     const queryParams = new URLSearchParams();
-  
+
     // إضافة الفلاتر غير الفارغة للـ URL، مع استثناء القيم الفارغة
     Object.entries(newFilters).forEach(([key, value]) => {
       if (value && value.trim() !== "") {
         queryParams.set(key, value);
       }
     });
-  
+
     // تحديث URL بدون التأثير على الروت
     window.history.replaceState(
-      null, 
-      '', 
+      null,
+      '',
       queryParams.toString() ? `?${queryParams.toString()}` : window.location.pathname
     );
   };
@@ -222,7 +222,6 @@ export default function HomePage() {
   useEffect(() => {
     const initialFilters = initializeFiltersFromURL();
     setFilters(initialFilters);
-
     // إعادة تطبيق الفلاتر من URL
     const filtered = data.filter((property) => {
       return (
@@ -249,7 +248,8 @@ export default function HomePage() {
       );
     });
     setFilteredData(filtered);
-  }, []);
+  }, [data, initializeFiltersFromURL]); // أضف الاعتماديات هنا
+
 
   return (
     <section className="py-5">
