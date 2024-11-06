@@ -85,7 +85,6 @@ export default function HomePage() {
       amenities: ["البدروم", "غاز"],
     },
   ];
-
   type Filters = {
     searchTerm: string;
     location: string;
@@ -119,19 +118,18 @@ export default function HomePage() {
 
   const [filters, setFilters] = useState<Filters>(initializeFiltersFromURL);
   const [filteredData, setFilteredData] = useState(data);
+  const [tempFilters, setTempFilters] = useState<Filters>(initializeFiltersFromURL);
 
-  // تحديث URL عند تغيير الفلاتر
+  // تحديث URL فقط عند الضغط على زر البحث
   const updateURL = (newFilters: Filters) => {
     const queryParams = new URLSearchParams();
 
-    // إضافة الفلاتر غير الفارغة للـ URL، مع استثناء القيم الفارغة
     Object.entries(newFilters).forEach(([key, value]) => {
       if (value && value.trim() !== "") {
         queryParams.set(key, value);
       }
     });
 
-    // تحديث URL بدون التأثير على الروت
     window.history.replaceState(
       null,
       '',
@@ -140,89 +138,66 @@ export default function HomePage() {
   };
 
   const handleSearch = () => {
+    // تحديث الفلاتر الرئيسية من الفلاتر المؤقتة
+    setFilters(tempFilters);
+
     const filtered = data.filter((property) => {
       const matchesSearch =
-        !filters.searchTerm ||
+        !tempFilters.searchTerm ||
         Object.values(property).some((value) =>
           value
             .toString()
             .toLowerCase()
-            .includes(filters.searchTerm.toLowerCase())
+            .includes(tempFilters.searchTerm.toLowerCase())
         );
 
       return (
         matchesSearch &&
-        (!filters.location || property.location === filters.location) &&
-        (!filters.finishType || property.finishType === filters.finishType) &&
-        (!filters.currency || property.currency === filters.currency) &&
-        (!filters.propertyType ||
-          property.propertyType === filters.propertyType) &&
-        (!filters.purpose || property.purpose === filters.purpose) &&
-        (!filters.minPrice || property.price >= parseInt(filters.minPrice)) &&
-        (!filters.maxPrice || property.price <= parseInt(filters.maxPrice)) &&
-        (!filters.minArea || property.area >= parseInt(filters.minArea)) &&
-        (!filters.maxArea || property.area <= parseInt(filters.maxArea)) &&
-        (!filters.amenity || property.amenities.includes(filters.amenity))
+        (!tempFilters.location || property.location === tempFilters.location) &&
+        (!tempFilters.finishType || property.finishType === tempFilters.finishType) &&
+        (!tempFilters.currency || property.currency === tempFilters.currency) &&
+        (!tempFilters.propertyType ||
+          property.propertyType === tempFilters.propertyType) &&
+        (!tempFilters.purpose || property.purpose === tempFilters.purpose) &&
+        (!tempFilters.minPrice || property.price >= parseInt(tempFilters.minPrice)) &&
+        (!tempFilters.maxPrice || property.price <= parseInt(tempFilters.maxPrice)) &&
+        (!tempFilters.minArea || property.area >= parseInt(tempFilters.minArea)) &&
+        (!tempFilters.maxArea || property.area <= parseInt(tempFilters.maxArea)) &&
+        (!tempFilters.amenity || property.amenities.includes(tempFilters.amenity))
       );
     });
+
     setFilteredData(filtered);
-    updateURL(filters);
+    // تحديث URL فقط عند الضغط على زر البحث
+    updateURL(tempFilters);
   };
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    const newFilters = {
-      ...filters,
+    // تحديث الفلاتر المؤقتة فقط
+    setTempFilters(prev => ({
+      ...prev,
       [name]: value,
-    };
-    setFilters(newFilters);
-    updateURL(newFilters);
-
-    // فلترة مباشرة
-    const filtered = data.filter((property) => {
-      return (
-        (!newFilters.location || property.location === newFilters.location) &&
-        (!newFilters.finishType ||
-          property.finishType === newFilters.finishType) &&
-        (!newFilters.currency || property.currency === newFilters.currency) &&
-        (!newFilters.propertyType ||
-          property.propertyType === newFilters.propertyType) &&
-        (!newFilters.purpose || property.purpose === newFilters.purpose) &&
-        (!newFilters.minPrice ||
-          property.price >= parseInt(newFilters.minPrice)) &&
-        (!newFilters.maxPrice ||
-          property.price <= parseInt(newFilters.maxPrice)) &&
-        (!newFilters.minArea ||
-          property.area >= parseInt(newFilters.minArea)) &&
-        (!newFilters.maxArea ||
-          property.area <= parseInt(newFilters.maxArea)) &&
-        (!newFilters.amenity || property.amenities.includes(newFilters.amenity))
-      );
-    });
-    setFilteredData(filtered);
+    }));
   };
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    const newFilters = { ...filters, searchTerm: value };
-    setFilters(newFilters);
-    updateURL(newFilters);
-
-    const filtered = data.filter((property) =>
-      Object.values(property).some((val) =>
-        val.toString().toLowerCase().includes(value.toLowerCase())
-      )
-    );
-    setFilteredData(filtered);
+    // تحديث الفلاتر المؤقتة فقط
+    setTempFilters(prev => ({
+      ...prev,
+      searchTerm: value,
+    }));
   };
 
   // تحميل الفلاتر من URL عند تحميل الصفحة
   useEffect(() => {
     const initialFilters = initializeFiltersFromURL();
     setFilters(initialFilters);
-    // إعادة تطبيق الفلاتر من URL
+    setTempFilters(initialFilters);
+
     const filtered = data.filter((property) => {
       return (
         (!initialFilters.location ||
@@ -248,7 +223,7 @@ export default function HomePage() {
       );
     });
     setFilteredData(filtered);
-  }, [data, initializeFiltersFromURL]); // أضف الاعتماديات هنا
+  }, [searchParams]); // تغيير الاعتمادية إلى searchParams
 
 
   return (
@@ -257,7 +232,7 @@ export default function HomePage() {
         <input
           type="search"
           name="searchTerm"
-          value={filters.searchTerm}
+          value={tempFilters.searchTerm}
           onChange={handleSearchChange}
           className="w-full p-3 mb-4 border rounded-lg outline-none focus:border-blue-500"
           placeholder="بحث عام..."
@@ -266,7 +241,7 @@ export default function HomePage() {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <select
             name="location"
-            value={filters.location}
+            value={tempFilters.location}
             onChange={handleChange}
             className="p-2 border rounded-lg"
           >
@@ -380,7 +355,7 @@ export default function HomePage() {
         <button
           type="button"
           onClick={handleSearch}
-          className="bg-blue-500 text-white p-2 px-10 w-full m-auto  rounded-lg"
+          className="bg-blue-500 text-white p-2 px-10 w-full m-auto rounded-lg"
         >
           بحث
         </button>
